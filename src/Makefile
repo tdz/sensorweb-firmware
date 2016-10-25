@@ -5,6 +5,13 @@
 TOPDIR := ..
 include $(TOPDIR)/env.mk
 
+# Add things that come from the SDK
+VPATH += $(SDK_PATH)/example/freertos_demo
+INCLUDES += -I$(SDK_PATH)/example/common \
+            -I$(SDK_PATH)/example/freertos_demo
+SRC += pinmux.c \
+       uart_if.c
+
 PROGRAMS += sensorweb.bin
 
 LIBS += $(LIBDRIVER) \
