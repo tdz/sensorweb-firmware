@@ -42,7 +42,7 @@ SerialPutString(size_t aLength, const char* aString)
 }
 
 static void
-Run(SerialOutTask* aSerialOut)
+RunOutTask(SerialOutTask* aSerialOut)
 {
   ClearTerm();
 
@@ -60,11 +60,11 @@ Run(SerialOutTask* aSerialOut)
 }
 
 static void
-TaskEntryPoint(void* aParam)
+OutTaskEntryPoint(void* aParam)
 {
   SerialOutTask* serialOut = aParam;
 
-  Run(serialOut);
+  RunOutTask(serialOut);
 
   /* We mark ourselves for deletion. Deletion is done by
    * the idle thread. We suspend until this happens. */
@@ -87,7 +87,7 @@ SerialOutTaskInit(SerialOutTask* aSerialOut)
 static int
 SerialOutTaskSpawn(SerialOutTask* aSerialOut)
 {
-  BaseType_t res = xTaskCreate(TaskEntryPoint, "serial-out",
+  BaseType_t res = xTaskCreate(OutTaskEntryPoint, "serial-out",
                                TaskDefaultStackSize(), aSerialOut,
                                1, &aSerialOut->mTask);
   if (res != pdPASS) {
