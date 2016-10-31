@@ -15,8 +15,14 @@ SerialPutChar(int c);
 void
 SerialPutString(size_t aLength, const char* aString);
 
-/* Returns the message queue for output of over the serial line. This
+/* Returns the message queue for output over the serial line. This
  * is a singleton.
  */
 IPCMessageQueue*
 GetSerialOutQueue(void);
+
+/* Returns the message queue for input over the serial line. This
+ * is a singleton.
+ */
+IPCMessageQueue*
+GetSerialInQueue(void);

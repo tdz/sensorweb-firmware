@@ -97,10 +97,79 @@ SerialOutTaskSpawn(SerialOutTask* aSerialOut)
 }
 
 /*
+ * Serial input
+ */
+
+typedef struct
+{
+  IPCMessageQueue mRecvQueue;
+
+  TaskHandle_t mTask;
+} SerialInTask;
+
+static void
+RunInTask(SerialInTask* aSerialIn)
+{
+  for (;;) {
+    IPCMessage msg;
+    int res = IPCMessageQueueWait(&aSerialIn->mRecvQueue, &msg);
+    if (res < 0) {
+      return;
+    }
+
+    res = GetCmd(msg.mBuffer, IPCMessageGetBufferLength(&msg));
+    if (res < 0) {
+      IPCMessageConsumeAndReplyError(&msg, 0, 0);
+      continue;
+    }
+
+    IPCMessageConsumeAndReply(&msg, 0, 0, 0, res, msg.mBuffer);
+  }
+}
+
+static void
+RunInTaskEntryPoint(void* aParam)
+{
+  SerialInTask* serialIn = aParam;
+
+  RunInTask(serialIn);
+
+  /* We mark ourselves for deletion. Deletion is done by
+   * the idle thread. We suspend until this happens. */
+  vTaskDelete(serialIn->mTask);
+  vTaskSuspend(serialIn->mTask);
+}
+
+static int
+SerialInTaskInit(SerialInTask* aSerialIn)
+{
+  int res = IPCMessageQueueInit(&aSerialIn->mRecvQueue);
+  if (res < 0) {
+    return res;
+  }
+  aSerialIn->mTask = NULL;
+
+  return 0;
+}
+
+static int
+SerialInTaskSpawn(SerialInTask* aSerialIn)
+{
+  BaseType_t res = xTaskCreate(RunInTaskEntryPoint, "serial-in",
+                               TaskDefaultStackSize(), aSerialIn,
+                               1, &aSerialIn->mTask);
+  if (res != pdPASS) {
+    return -1;
+  }
+  return 0;
+}
+
+/*
  * Public interfaces
  */
 
 static SerialOutTask sSerialOutTask;
+static SerialInTask sSerialInTask;
 
 int
 SerialInit()
@@ -116,6 +185,17 @@ SerialInit()
   if (SerialOutTaskSpawn(&sSerialOutTask) < 0) {
     return -1;
   }
+
+  /*
+   * Create the Input task
+   */
+  if (SerialInTaskInit(&sSerialInTask) < 0) {
+    return -1;
+  }
+  if (SerialInTaskSpawn(&sSerialInTask) < 0) {
+    return -1;
+  }
+
   return 0;
 }
 
@@ -123,4 +203,10 @@ IPCMessageQueue*
 GetSerialOutQueue()
 {
   return &sSerialOutTask.mRecvQueue;
+}
+
+IPCMessageQueue*
+GetSerialInQueue()
+{
+  return &sSerialInTask.mRecvQueue;
 }
