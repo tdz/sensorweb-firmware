@@ -5,6 +5,7 @@
 #include "FormattedIO.h"
 #include <StrPrintf.h>
 #include <stdio.h>
+#include <string.h>
 #include "Serial.h"
 
 static int
@@ -28,6 +29,42 @@ PrintIPC(uint32_t aLength, void* aBuffer)
     goto err;
   }
   res = IPCMessageWaitForConsumption(&msg);
+  if (res < 0) {
+    goto err;
+  }
+  IPCMessageUninit(&msg);
+  return res;
+
+err:
+  IPCMessageUninit(&msg);
+  return -1;
+}
+
+static ssize_t
+GetlineIPC(uint32_t aLength, void* aBuffer)
+{
+  IPCMessageQueue* queue = GetSerialInQueue();
+  if (!queue) {
+    return -1;
+  }
+  IPCMessage msg;
+  int res = IPCMessageInit(&msg);
+  if (res < 0) {
+    return -1;
+  }
+  res = IPCMessageProduce(&msg, aLength, aBuffer);
+  if (res < 0) {
+    goto err;
+  }
+  res = IPCMessageQueueConsume(queue, &msg);
+  if (res < 0) {
+    goto err;
+  }
+  res = IPCMessageWaitForReply(&msg);
+  if (res < 0) {
+    goto err;
+  }
+  res = IPCMessageGetBufferLength(&msg);
   if (res < 0) {
     goto err;
   }
@@ -144,4 +181,40 @@ int
 VPrintFromISR(const char* fmt, va_list ap)
 {
   return _VPrint(fmt, ap);
+}
+
+ssize_t
+Getline(char* line, size_t len)
+{
+  return GetlineIPC(len, line);
+}
+
+ssize_t
+Getdelim(char* line, size_t len, int delim)
+{
+  char* pos = NULL;
+  ssize_t outlen = 0;
+
+  while (!pos && len) {
+    char buf[128];
+    ssize_t buflen = sizeof(buf) < len ? sizeof(buf) : len;
+    buflen = GetlineIPC(buflen, buf);
+    if (buflen < 0) {
+      return -1;
+    }
+
+    pos = memchr(buf, delim, buflen);
+    if (pos) {
+      outlen += pos - buf;
+      memcpy(line, buf, pos - buf);
+      return outlen;
+    }
+
+    memcpy(line, buf, buflen);
+
+    line += buflen;
+    len -= buflen;
+  }
+
+  return -1; /* delimiter not found */
 }
