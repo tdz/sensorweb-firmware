@@ -154,6 +154,22 @@ IPCMessageConsumeAndReply(IPCMessage* aMsg,
 }
 
 int
+IPCMessageConsumeAndReplyError(IPCMessage* aMsg, uint32_t aDWord0,
+                               uint32_t aDWord1)
+{
+  if (aMsg->mStatus & IPC_MESSAGE_FLAG_NOWAIT) {
+    return 0; /* Silently succeed */
+  }
+  IPCMessageReply reply = {
+    .mDWord0 = aDWord0,
+    .mDWord1 = aDWord1,
+    .mStatus = IPC_MESSAGE_STATE_ERROR,
+    .mBuffer = NULL
+  };
+  return ConsumeAndReply(aMsg, &reply);
+}
+
+int
 IPCMessageConsume(IPCMessage* aMsg)
 {
   if (aMsg->mStatus & IPC_MESSAGE_FLAG_NOWAIT) {

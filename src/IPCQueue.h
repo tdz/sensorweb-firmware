@@ -194,6 +194,10 @@ IPCMessageConsumeAndReply(IPCMessage* aMsg,
                           void* aBuffer);
 
 int
+IPCMessageConsumeAndReplyError(IPCMessage* aMsg, uint32_t aDWord0,
+                               uint32_t aDWord1);
+
+int
 IPCMessageConsume(IPCMessage* aMsg);
 
 /*
