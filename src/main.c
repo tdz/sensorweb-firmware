@@ -9,8 +9,10 @@
 #include <rom_map.h>
 #include <stdlib.h>
 
+#include <FreeRTOS.h>
+#include <task.h>
+
 #include "pinmux.h"
-#include "Producer.h"
 #include "Serial.h"
 
 extern void (* const g_pfnVectors[])(void);
@@ -38,19 +40,6 @@ main(void)
    */
 
   if (SerialInit() < 0) {
-    return EXIT_FAILURE;
-  }
-
-  /*
-   * Create the producer task
-   */
-
-  static ProducerTask producerTask;
-
-  if (ProducerTaskInit(&producerTask) < 0) {
-    return EXIT_FAILURE;
-  }
-  if (ProducerTaskSpawn(&producerTask) < 0) {
     return EXIT_FAILURE;
   }
 

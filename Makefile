@@ -76,7 +76,6 @@ OBJ := $(addprefix $(OBJDIR)/src/, \
 	IPCQueue.o \
 	main.o \
 	pinmux.o \
-	Producer.o \
 	Serial.o \
 	Task.o \
 	)
