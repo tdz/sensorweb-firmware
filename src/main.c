@@ -14,6 +14,7 @@
 
 #include "pinmux.h"
 #include "Serial.h"
+#include "Terminal.h"
 
 extern void (* const g_pfnVectors[])(void);
 
@@ -40,6 +41,14 @@ main(void)
    */
 
   if (SerialInit() < 0) {
+    return EXIT_FAILURE;
+  }
+
+  /*
+   * Create the terminal
+   */
+
+  if (TerminalInit() < 0) {
     return EXIT_FAILURE;
   }
 

@@ -78,6 +78,7 @@ OBJ := $(addprefix $(OBJDIR)/src/, \
 	pinmux.o \
 	Serial.o \
 	Task.o \
+	Terminal.o \
 	)
 
 OBJ += $(addprefix $(OBJDIR)/$(OSLIB)/, \

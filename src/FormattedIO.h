@@ -5,6 +5,7 @@
 #pragma once
 
 #include <stdarg.h>
+#include <sys/types.h>
 
 int
 Print(const char* fmt, ...);
@@ -17,6 +18,12 @@ PrintFromISR(const char* fmt, ...);
 
 int
 VPrintFromISR(const char* fmt, va_list ap);
+
+ssize_t
+Getline(char* line, size_t len);
+
+ssize_t
+Getdelim(char* line, size_t len, int delim);
 
 /* Internal functions for debugging; don't use in production code. */
 
