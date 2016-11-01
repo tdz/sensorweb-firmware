@@ -17,6 +17,18 @@
  * Commands
  */
 
+static int CommandEcho(char* aArguments)
+{
+  if (!aArguments) {
+    aArguments = ""; /* set an empty string */
+  }
+  int res = Print("%s\n\r", aArguments);
+  if (res < 0) {
+    return -1;
+  }
+  return 0;
+}
+
 typedef struct
 {
   char mName[8];
@@ -24,6 +36,7 @@ typedef struct
 } Command;
 
 static const Command sCommands[] = {
+  { "echo", CommandEcho }
 };
 
 static const Command*
